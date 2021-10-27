@@ -1,23 +1,8 @@
 #include <Arduino.h>
-
-/** CONFIG **/
-
-#define PIN_WHITE 6
-#define PIN_RED 9
-#define PIN_GREEN 10
-#define PIN_BLUE 11
-
-#define PIN_BUTTON 2
-
-#define MAX_OUTPUT_VALUE 255
-#define ENABLE_SERIAL false
+#include "config.h"
 
 // Interval (ms) between each update
 unsigned long updateInterval = 100;
-
-
-/** END CONFIG **/
-
 
 static uint8_t nextScene = 0;
 
@@ -31,7 +16,7 @@ bool timeHasPassed(unsigned long *lastUpdatedTime, unsigned long interval, bool 
 void trafficLight() {
     // Config
     static uint8_t nextStep = 0;
-    updateInterval = 3000;
+    updateInterval = TRAFFICLIGHT_CYCLE_PERIOD;
 
     // Execution
     setColor(nextStep == 0 ? MAX_OUTPUT_VALUE : 0,
@@ -47,11 +32,9 @@ void rainbow() {
     //Config
     static uint16_t nextColorStep = 0;
     static uint16_t nextWhiteStep = 0;
-    updateInterval = 1000 / 40;
-    uint16_t colorPeriod = 16000;
-    uint16_t whitePeriod = colorPeriod * 4.7;
-    uint16_t colorPeriodInSteps = colorPeriod / updateInterval;
-    uint16_t whitePeriodInSteps = whitePeriod / updateInterval;
+    updateInterval = 1000 / RAINBOW_UPDATES_PER_SECOND;
+    uint16_t colorPeriodInSteps = RAINBOW_COLOR_CYCLE_DURATION / updateInterval;
+    uint16_t whitePeriodInSteps = RAINBOW_WHITE_CYCLE_DURATION / (double) updateInterval;
 
     // Execution
     setColor(
@@ -85,15 +68,12 @@ void fullOnPurple() {
 /** LOGIC **/
 
 void checkInput() {
-    // Config
     static unsigned long lastActionTime = 0;
-    uint16_t buttonCooldownPeriod = 200;
-    uint16_t minimumSamples = 10;
-    uint16_t sampleTime = 100 / minimumSamples;
+    uint16_t sampleTime = BUTTON_MIN_PRESSED_PERIOD / BUTTON_MIN_SAMPLES;
     uint16_t samples = 0;
 
     // Debounce button using cooldown period
-    if (!timeHasPassed(&lastActionTime, buttonCooldownPeriod, false))
+    if (!timeHasPassed(&lastActionTime, BUTTON_DEBOUNCE_COOLDOWN_PERIOD, false))
         return;
 
     // Debounce button using sampling
@@ -102,7 +82,7 @@ void checkInput() {
         delay(sampleTime);
     }
 
-    if (samples < minimumSamples)
+    if (samples < BUTTON_MIN_SAMPLES)
         return;
 
     // Advance to next scene if button is pressed
