@@ -23,7 +23,7 @@ static uint8_t nextScene = 0;
 
 void setColor(int white, int red, int green, int blue);
 
-bool needsUpdate();
+bool timeHasPassed(unsigned long *lastUpdatedTime, unsigned long interval, bool updateTime);
 
 
 /** SCENES **/
@@ -85,12 +85,30 @@ void fullOnPurple() {
 /** LOGIC **/
 
 void checkInput() {
-    if (digitalRead(PIN_BUTTON)) return;
+    // Config
+    static unsigned long lastActionTime = 0;
+    uint16_t buttonCooldownPeriod = 200;
+    uint16_t minimumSamples = 10;
+    uint16_t sampleTime = 100 / minimumSamples;
+    uint16_t samples = 0;
+
+    // Debounce button using cooldown period
+    if (!timeHasPassed(&lastActionTime, buttonCooldownPeriod, false))
+        return;
+
+    // Debounce button using sampling
+    while (!digitalRead(PIN_BUTTON)) {
+        samples++;
+        delay(sampleTime);
+    }
+
+    if (samples < minimumSamples)
+        return;
 
     // Advance to next scene if button is pressed
     nextScene++;
-    delay(500);
     updateInterval = 100;
+    lastActionTime = millis();
 }
 
 void queue() {
@@ -123,11 +141,17 @@ void setColor(int white, int red, int green, int blue) {
 }
 
 bool needsUpdate() {
-    static unsigned long last_updated_time = 0;
-    if (last_updated_time + updateInterval > millis()) {
+    static unsigned long lastUpdatedTime = 0;
+    return timeHasPassed(&lastUpdatedTime, updateInterval, true);
+}
+
+bool timeHasPassed(unsigned long *lastUpdatedTime, unsigned long interval, bool updateTime) {
+    if (millis() < *lastUpdatedTime + interval) {
         return false;
     }
-    last_updated_time = millis();
+    if (updateTime) {
+        *lastUpdatedTime = millis();
+    }
     return true;
 }
 
