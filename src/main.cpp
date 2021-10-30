@@ -50,6 +50,32 @@ void rainbow() {
     nextWhiteStep = nextWhiteStep % whitePeriodInSteps;
 }
 
+void colorHop() {
+    //Config
+    static unsigned long lastColorHopTime = 0;
+    static uint16_t nextStep = 0;
+    static uint16_t targetStep = UINT16_MAX;
+    updateInterval = 1000 / COLOR_HOP_UPDATES_PER_SECOND;
+    uint16_t periodInSteps = COLOR_HOP_MAX_TRANSITION_TIME / updateInterval;
+
+    if (targetStep == UINT16_MAX || timeHasPassed(&lastColorHopTime, COLOR_HOP_PERIOD + COLOR_HOP_MAX_TRANSITION_TIME, true)) {
+        targetStep = random(0, periodInSteps);
+    }
+
+    if (nextStep != targetStep) {
+        nextStep++;
+        nextStep = nextStep % periodInSteps;
+    }
+
+    // Execution
+    setColor(
+            0,
+            0.5 * MAX_OUTPUT_VALUE * (1 + sin(2 * 3.1415 * ((double) nextStep / periodInSteps + 0))),
+            0.5 * MAX_OUTPUT_VALUE * (1 + sin(2 * 3.1415 * ((double) nextStep / periodInSteps + 1.0 / 3))),
+            0.5 * MAX_OUTPUT_VALUE * (1 + sin(2 * 3.1415 * ((double) nextStep / periodInSteps + 2.0 / 3)))
+    );
+}
+
 void fullOnWhite() {
     setColor(MAX_OUTPUT_VALUE, 0, 0, 0);
 }
@@ -60,6 +86,10 @@ void fullOnRed() {
 
 void fullOnPurple() {
     setColor(0, MAX_OUTPUT_VALUE, 0, MAX_OUTPUT_VALUE);
+}
+
+void allFullOn() {
+    setColor(MAX_OUTPUT_VALUE, MAX_OUTPUT_VALUE, MAX_OUTPUT_VALUE, MAX_OUTPUT_VALUE);
 }
 
 /** END SCENES **/
@@ -92,18 +122,24 @@ void checkInput() {
 void queue() {
     switch (nextScene) {
         case 0:
-            rainbow();
-            break;
-        case 1:
-            fullOnRed();
+            colorHop();
             break;
         case 2:
-            fullOnPurple();
+            rainbow();
             break;
         case 3:
-            fullOnWhite();
+            fullOnRed();
             break;
         case 4:
+            fullOnPurple();
+            break;
+        case 5:
+            fullOnWhite();
+            break;
+        case 6:
+            allFullOn();
+            break;
+        case 7:
             trafficLight();
             break;
         default:
@@ -142,6 +178,8 @@ void setup() {
     pinMode(PIN_BLUE, OUTPUT);
 
     setColor(0, 0, 0, 0);
+
+    randomSeed(analogRead(0));
 
 #if ENABLE_SERIAL
     Serial.begin(115200);
