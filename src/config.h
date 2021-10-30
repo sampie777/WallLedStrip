@@ -16,15 +16,14 @@
 #define PIN_BUTTON 2
 
 /* BUTTON */
-#define BUTTON_MIN_SAMPLES 10
-#define BUTTON_MIN_PRESSED_PERIOD 100   // Take the defined amount of samples over this period (ms)
+#define BUTTON_MIN_PRESS_TIME 100   // Minimum time the button must be pressed for it to register a valid press (ms)
 #define BUTTON_DEBOUNCE_COOLDOWN_PERIOD 200 // Don't check the button after is has been pressed for this amount of time (ms)
 
 /* SCENES */
 #define MAX_OUTPUT_VALUE 255
 
 // Traffic light
-#define TRAFFICLIGHT_CYCLE_PERIOD 3000  // Each period, change a color
+#define TRAFFICLIGHT_CYCLE_PERIOD 2000  // Each period, change a color
 
 // Rainbow
 #define RAINBOW_UPDATES_PER_SECOND 25

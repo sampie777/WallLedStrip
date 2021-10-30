@@ -4,7 +4,7 @@
 // Interval (ms) between each update
 unsigned long updateInterval = 100;
 
-static uint8_t nextScene = 0;
+uint8_t nextScene = 0;
 
 void setColor(int white, int red, int green, int blue);
 
@@ -69,20 +69,18 @@ void fullOnPurple() {
 
 void checkInput() {
     static unsigned long lastActionTime = 0;
-    uint16_t sampleTime = BUTTON_MIN_PRESSED_PERIOD / BUTTON_MIN_SAMPLES;
-    uint16_t samples = 0;
 
     // Debounce button using cooldown period
     if (!timeHasPassed(&lastActionTime, BUTTON_DEBOUNCE_COOLDOWN_PERIOD, false))
         return;
 
-    // Debounce button using sampling
+    // Debounce button using minimum pressed time
+    unsigned long pressStartTime = millis();
     while (!digitalRead(PIN_BUTTON)) {
-        samples++;
-        delay(sampleTime);
+        delay(10);
     }
 
-    if (samples < BUTTON_MIN_SAMPLES)
+    if (millis() < pressStartTime + BUTTON_MIN_PRESS_TIME)
         return;
 
     // Advance to next scene if button is pressed
