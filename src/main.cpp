@@ -58,12 +58,30 @@ void colorHop() {
     updateInterval = 1000 / COLOR_HOP_UPDATES_PER_SECOND;
     uint16_t periodInSteps = COLOR_HOP_MAX_TRANSITION_TIME / updateInterval;
 
-    if (targetStep == UINT16_MAX || timeHasPassed(&lastColorHopTime, COLOR_HOP_PERIOD + COLOR_HOP_MAX_TRANSITION_TIME, true)) {
+    if (targetStep == UINT16_MAX
+        || timeHasPassed(&lastColorHopTime, COLOR_HOP_PERIOD + COLOR_HOP_MAX_TRANSITION_TIME, true)) {
         targetStep = random(0, periodInSteps);
     }
 
     if (nextStep != targetStep) {
-        nextStep++;
+        /*
+         * Theory:
+         *
+         *  Possible cases:
+         *     0              360 deg              0              360 deg
+         *     |---[=======]---|           OR      |===]-------[===]
+         *         ^C      ^C + 180 deg                ^       ^C
+         *
+         *   If target is inside the [===] area, move up (right).
+         *   If target is outside the [===] area, move down (left).
+         *
+         */
+        int diff = targetStep - nextStep;
+        if ((0 < diff && diff < periodInSteps / 2) || diff < periodInSteps / -2) {
+            nextStep++;
+        } else {
+            nextStep--;
+        }
         nextStep = nextStep % periodInSteps;
     }
 
