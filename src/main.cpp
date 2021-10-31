@@ -140,24 +140,24 @@ void checkInput() {
 void queue() {
     switch (nextScene) {
         case 0:
+            rainbow();
+            break;
+        case 1:
             colorHop();
             break;
         case 2:
-            rainbow();
-            break;
-        case 3:
             fullOnRed();
             break;
-        case 4:
+        case 3:
             fullOnPurple();
             break;
-        case 5:
+        case 4:
             fullOnWhite();
             break;
-        case 6:
+        case 5:
             allFullOn();
             break;
-        case 7:
+        case 6:
             trafficLight();
             break;
         default:
